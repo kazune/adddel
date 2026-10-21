@@ -169,6 +169,16 @@ Gitリポジトリの存在は要求しない。
 - CLIテストは `tests/test_adddel.bats`、生成処理のテストは `tests/test_dist.bats` に配置する。
 - `bats tests` で全テストを実行し、`make test` では先に配布物を生成してから全テストを実行する。
 
+## 静的検査
+
+- `make check` は配布物を生成せず、Batsテストも実行しない。
+- ShellCheckで `src/adddel`、`scripts/*.sh`、`tests/*.bats` を検査する。
+- Bash構文検査は `src/adddel` と `scripts/*.sh` の各ファイルを `bash -n` で検査する。
+- Batsファイルは独自構文を含むため、`bash -n` の対象には含めない。
+- 検査対象はMake変数で指定でき、`BASH_FILES` は `src/adddel scripts/*.sh`、`BATS_FILES` は `tests/*.bats`、`SHELL_FILES` は `$(BASH_FILES) $(BATS_FILES)` を標準値とする。
+- `bash -n` は `BASH_FILES`、ShellCheckは `SHELL_FILES` を検査する。
+- 検査失敗、またはShellCheckが利用できない場合は非ゼロ終了する。
+
 ## インストール
 
 - `make install` は生成済みの `dist/bin/adddel` と `dist/share/man/man1/adddel.1` を配置し、配布物を再生成しない。

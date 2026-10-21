@@ -6,6 +6,7 @@
 
 - `make install` による生成済みプログラムとmanページの配置。
 - `PREFIX` による配置先の変更と、`DESTDIR` による仮配置。
+- `make check` によるShellCheckとBash構文検査。
 
 ## v1.0.0 - 2026-10-21
 
