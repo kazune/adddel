@@ -123,7 +123,7 @@ additions: 12, deletions: 5
 ### ヘルプ本文案
 
 ```text
-Usage: adddel [-l | --label] [--] OLD NEW
+Usage: adddel [-l | --label] [--] <OLD> <NEW>
        adddel -h | --help
        adddel --version
 

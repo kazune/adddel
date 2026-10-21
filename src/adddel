@@ -10,7 +10,7 @@ fail() {
 
 help() {
     cat <<'EOF'
-Usage: adddel [-l | --label] [--] OLD NEW
+Usage: adddel [-l | --label] [--] <OLD> <NEW>
        adddel -h | --help
        adddel --version
 

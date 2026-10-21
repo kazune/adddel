@@ -4,7 +4,7 @@ adddel - count added and deleted lines between two files
 
 # SYNOPSIS
 
-**adddel** [`-l` | `--label`] [`--`] *OLD* *NEW*
+**adddel** [`-l` | `--label`] [`--`] \<*OLD*\> \<*NEW*\>
 
 **adddel** `-h` | `--help`
 
