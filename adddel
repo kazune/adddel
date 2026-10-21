@@ -1,0 +1,120 @@
+#!/bin/bash
+
+fail() {
+    printf 'adddel: %s\n' "$2" >&2
+    exit "$1"
+}
+
+help() {
+    cat <<'EOF'
+Usage: adddel [-l | --label] [--] OLD NEW
+       adddel -h | --help
+
+Count added and deleted lines between two files.
+OLD is the original file; NEW is the modified file.
+
+Options (before file arguments only):
+  -l, --label  Print labeled counts; may be repeated.
+  -h, --help   Show help and exit successfully.
+  --           End option parsing.
+
+Output: additions<TAB>deletions, followed by a newline.
+With --label: additions: N, deletions: N
+
+Exit codes:
+  0  Success, including differences or help.
+  1  Git unavailable or processing failed.
+  2  Invalid arguments or input files, including uncountable binary input.
+EOF
+}
+
+# Scan the entire option prefix before reporting an unknown option.
+for argument in "$@"; do
+    case "$argument" in
+        --) break ;;
+        -h|--help) help; exit 0 ;;
+        -*) ;;
+        *) break ;;
+    esac
+done
+
+labeled=0
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -l|--label) labeled=1; shift ;;
+        --) shift; break ;;
+        -*) fail 2 'unknown option' ;;
+        *) break ;;
+    esac
+done
+[ "$#" -eq 2 ] || fail 2 'expected exactly two file arguments'
+
+paths=()
+for path in "$@"; do
+    [ -e "$path" ] || fail 2 'input file does not exist'
+    [ -f "$path" ] || fail 2 'input is not a regular file'
+    [ -r "$path" ] || fail 2 'input file is not readable'
+    case "$path" in
+        /*) ;;
+        *) path="$PWD/$path" ;;
+    esac
+    # Git compares final symlinks themselves; resolve them before invoking it.
+    while [ -L "$path" ]; do
+        target=$(readlink "$path" 2>/dev/null && printf '.') || fail 1 'cannot resolve input file'
+        target=${target%.}
+        target=${target%$'\n'}
+        case "$target" in
+            /*) path=$target ;;
+            *) path="${path%/*}/$target" ;;
+        esac
+    done
+    paths+=("$path")
+done
+
+command -v git >/dev/null 2>&1 || fail 1 'git is not available'
+work_dir=$(mktemp -d "${TMPDIR:-/tmp}/adddel.XXXXXXXX" 2>/dev/null) || fail 1 'cannot create temporary directory'
+trap 'rm -rf -- "$work_dir"' EXIT
+trap 'exit 1' HUP INT TERM
+
+git diff --no-index --numstat -z --diff-algorithm=myers \
+    --no-indent-heuristic --no-ext-diff --no-textconv --no-renames \
+    -- "${paths[0]}" "${paths[1]}" >"$work_dir/numstat" 2>"$work_dir/stderr"
+git_status=$?
+case "$git_status" in
+    0|1) ;;
+    *) fail 1 'git diff failed' ;;
+esac
+
+additions=0
+deletions=0
+if [ -s "$work_dir/numstat" ]; then
+    exec 3<"$work_dir/numstat"
+    IFS= read -r -d '' record <&3 || fail 1 'invalid git diff output'
+    [[ $record == *$'\t'*$'\t'* ]] || fail 1 'invalid git diff output'
+    additions=${record%%$'\t'*}
+    remainder=${record#*$'\t'}
+    deletions=${remainder%%$'\t'*}
+    filename=${remainder#*$'\t'}
+    if [ -z "$filename" ]; then
+        # --no-index can encode the two paths as separate NUL records.
+        IFS= read -r -d '' old_path <&3 && [ -n "$old_path" ] || fail 1 'invalid git diff output'
+        IFS= read -r -d '' new_path <&3 && [ -n "$new_path" ] || fail 1 'invalid git diff output'
+    fi
+    extra=
+    if IFS= read -r -d '' extra <&3 || [ -n "$extra" ]; then
+        fail 1 'invalid git diff output'
+    fi
+    exec 3<&-
+    if [ "$additions" = '-' ] && [ "$deletions" = '-' ]; then
+        fail 2 'cannot count lines for binary input'
+    fi
+    [[ $additions =~ ^[0-9]+$ && $deletions =~ ^[0-9]+$ ]] || fail 1 'invalid git diff output'
+elif [ "$git_status" -ne 0 ]; then
+    fail 1 'invalid git diff output'
+fi
+
+if [ "$labeled" -eq 1 ]; then
+    printf 'additions: %s, deletions: %s\n' "$additions" "$deletions"
+else
+    printf '%s\t%s\n' "$additions" "$deletions"
+fi
