@@ -45,7 +45,7 @@ trap 'rm -rf -- "$work_dir"' EXIT
 trap 'exit 1' HUP INT TERM
 sed -e "s/@VERSION@/$version/g" -e "s/@DATE@/$build_date/g" \
     src/adddel >"$work_dir/adddel"
-"${PANDOC:-pandoc}" --from=markdown-smart --to=man --standalone \
+"${PANDOC:-pandoc}" --from=markdown --to=man --standalone \
     --metadata "title=ADDDEL" --metadata "section=1" \
     --metadata "header=User Commands" --variable "footer=adddel $version" \
     --variable "date=$build_date" src/adddel.1.md -o "$work_dir/adddel.1"

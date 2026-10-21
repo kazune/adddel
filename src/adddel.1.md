@@ -4,11 +4,11 @@ adddel - count added and deleted lines between two files
 
 # SYNOPSIS
 
-**adddel** [**-l** | **--label**] [**--**] *OLD* *NEW*
+**adddel** [`-l` | `--label`] [`--`] *OLD* *NEW*
 
-**adddel** **-h** | **--help**
+**adddel** `-h` | `--help`
 
-**adddel** **--version**
+**adddel** `--version`
 
 # DESCRIPTION
 
@@ -37,28 +37,28 @@ Identical binary files for which Git reports no differences produce zero additio
 # OPTIONS
 
 Options must precede the first file argument.
-Combined short options such as **-lh** or **-ll** are not accepted.
+Combined short options such as `-lh` or `-ll` are not accepted.
 
-**-l**, **--label**
+`-l`, `--label`
 : Print labeled counts instead of tab-separated counts.
   This option may be repeated.
 
-**-h**, **--help**
+`-h`, `--help`
 : Print help to standard output and exit successfully without checking input files or Git availability.
   Within the option prefix, help takes precedence over version display and invalid arguments, including unknown options.
 
-**--version**
+`--version`
 : Print `adddel VERSION` followed by a newline to standard output and exit successfully.
   The version is embedded at build time; input files and Git availability are not checked.
   Within the option prefix, version display takes precedence over invalid arguments, including unknown options, but help takes precedence over version display.
   There is no short option for version display.
 
-**--**
+`--`
 : End option parsing.
   All subsequent arguments are file names.
   Use this to pass names beginning with a hyphen, or prefix such names with `./`.
 
-Help and version options after the first file argument or after **--** are treated as file names.
+Help and version options after the first file argument or after `--` are treated as file names.
 
 # OUTPUT
 
@@ -69,7 +69,7 @@ For example, with `<TAB>` representing the tab character:
 12<TAB>5
 ```
 
-With **--label**, the same counts are printed as:
+With `--label`, the same counts are printed as:
 
 ```text
 additions: 12, deletions: 5
