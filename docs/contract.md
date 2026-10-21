@@ -25,6 +25,7 @@
 | `adddel --label old.txt new.txt` | ラベル付きで集計結果を出力する。 |
 | `adddel -h` | ヘルプを表示する。 |
 | `adddel --help` | ヘルプを表示する。 |
+| `adddel --version` | 埋め込まれたバージョンを表示する。 |
 
 ラベル付き出力の長いオプション名は `--label` とする。
 
@@ -38,7 +39,12 @@
 - 不明なオプション、および `-lh` や `-ll` のような短いオプションの結合は引数エラーとする。
 - 最初のファイル引数または `--` より前に `-h` または `--help` があれば、他の引数の不備よりヘルプを優先する。
 - ヘルプの場合はファイルやGitを検証せず、標準出力にヘルプを表示して `0` で終了する。
-- 最初のファイル引数または `--` より後の `-h` と `--help` はオプションとして扱わない。
+- `--version` は標準出力に `adddel VERSION` と末尾改行を出し、ファイルやGitを検証せず `0` で終了する。
+- `--version` の短縮オプションは追加しない。
+- オプション解析の範囲では、ヘルプ、バージョン表示、引数不備の順に優先する。
+- 最初のファイル引数または `--` より後の `-h`、`--help`、`--version` はオプションとして扱わない。
+- バージョンは生成時に埋め込み、実行時にGitから取得しない。
+- `src/adddel` の直接実行では、バージョンとして `@VERSION@` を表示する。
 
 `adddel --unknown --help` はヘルプ表示となる。
 `adddel -- --help new.txt` は `--help` という名前のファイルを比較する。
@@ -91,7 +97,7 @@ additions: 12, deletions: 5
 | 状態 | 終了コード |
 | --- | --- |
 | 集計成功、差分の有無は問わない | `0` |
-| ヘルプ表示 | `0` |
+| ヘルプ・バージョン表示 | `0` |
 | 引数不正、不明なオプション | `2` |
 | ファイル不存在、リンク切れ、通常ファイル以外、読み取り不可 | `2` |
 | Gitの集計列が `-` となるバイナリ | `2` |
@@ -119,6 +125,7 @@ additions: 12, deletions: 5
 ```text
 Usage: adddel [-l | --label] [--] OLD NEW
        adddel -h | --help
+       adddel --version
 
 Count added and deleted lines between two files.
 OLD is the original file; NEW is the modified file.
@@ -126,13 +133,14 @@ OLD is the original file; NEW is the modified file.
 Options (before file arguments only):
   -l, --label  Print labeled counts; may be repeated.
   -h, --help   Show help and exit successfully.
+  --version    Show version and exit successfully.
   --           End option parsing.
 
 Output: additions<TAB>deletions, followed by a newline.
 With --label: additions: N, deletions: N
 
 Exit codes:
-  0  Success, including differences or help.
+  0  Success, including differences, help, or version.
   1  Git unavailable or processing failed.
   2  Invalid arguments or input files, including uncountable binary input.
 ```
@@ -150,11 +158,31 @@ Gitリポジトリの存在は要求しない。
 - 空白・空行を無視するオプション
 - JSON出力
 
-## 実装とテストの配置
+## 実装・生成・テストの配置
 
-- 実行スクリプトはルートの `adddel` に配置する。
-- テストにはBatsを使用し、`tests/test_adddel.bats` に配置する。
-- テストは `bats tests/test_adddel.bats` で実行する。
+- プログラムの原本は `src/adddel` に配置する。
+- manページの原本はMarkdownの `src/adddel.1.md` に配置する。
+- `make dist` で `dist/bin/adddel` と `dist/share/man/man1/adddel.1` を生成する。
+- manページはPandocで変換する。
+- 生成したプログラムには実行権限を付ける。
+- `/dist/` はGit管理対象外とする。
+- CLIテストは `tests/test_adddel.bats`、生成処理のテストは `tests/test_dist.bats` に配置する。
+- `bats tests` で全テストを実行し、`make test` では先に配布物を生成してから全テストを実行する。
+
+## 配布物のメタデータ
+
+- 基準タグはHEADから到達可能な `v数字.数字.数字` 形式のタグからGit describeで選ぶ。
+- 注釈付きタグと軽量タグの両方を対象とする。
+- HEADが基準タグと一致し、追跡ファイルに変更がなければ、先頭の `v` を除いたバージョンを使う。
+- HEADが基準タグから離れている場合、`0.1.0-gabc1234` のようにHEADの短縮コミットIDを付ける。
+- 追跡ファイルにステージ済みまたは未ステージの変更があれば、タグ一致時もコミットIDを付け、さらに `-dirty` を付ける。
+- 未追跡ファイルはdirty判定に含めない。
+- 日付はHEADのコミッター日時をUTCの `YYYY-MM-DD` に変換する。
+- バージョンと日付はプログラムのヘッダーコメントとmanページへ埋め込む。
+- `make dist` の実行ごとにGit情報を再取得し、タグの追加や変更も反映する。
+- 到達可能なバージョンタグがない場合、またはGit・Pandocが利用できない場合は非ゼロ終了する。
+- 変換途中の失敗で既存の配布物を上書きしないよう、両ファイルの生成完了後に配置する。
+- 生成済みプログラムのヘルプとバージョン表示には、Gitや元のリポジトリを必要としない。
 
 ## 必要なテスト
 
@@ -195,3 +223,15 @@ Gitリポジトリの存在は要求しない。
 - ユーザー設定にかかわらずmyersと各無効化条件が適用され、外部diff・textconvが実行されないこと。
 - `.gitattributes` によるテキスト／バイナリ判定の影響を許容すること。
 - macOS・LinuxとBash 3.2互換の実装で契約を満たすこと。
+
+### バージョンと生成処理
+
+- バージョン表示の文面、末尾改行、終了コード、優先順位、解析範囲を検証すること。
+- 元プログラムの直接実行では `@VERSION@` を表示し、生成物では確定したバージョンを表示すること。
+- 軽量タグ・注釈付きタグ、タグ以降のコミット、ステージ済み・未ステージの変更を検証すること。
+- 無関係なタグ、不正な形式のタグ、HEADから到達できないタグを基準にしないこと。
+- タグなしで非ゼロ終了し、新しい配布物を生成しないこと。
+- 日付がコミット日時のUTC日付であり、プログラムとmanページで一致すること。
+- 同じコミットで再生成でき、後から追加されたタグも反映すること。
+- Pandocの未導入・変換失敗で非ゼロ終了し、既存の配布物を保持すること。
+- Gitが利用できない環境でも、生成済みプログラムのヘルプとバージョン表示が動作すること。

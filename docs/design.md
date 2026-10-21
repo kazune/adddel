@@ -51,6 +51,7 @@ additions: 12, deletions: 5
 | `adddel --label old.txt new.txt` | ラベル付き出力 |
 | `adddel -h`                      | ヘルプ表示   |
 | `adddel --help`                  | ヘルプ表示   |
+| `adddel --version`               | バージョン表示 |
 
 ## 4. 終了ステータス
 
@@ -63,7 +64,7 @@ additions: 12, deletions: 5
 | ファイル読み取り失敗 | `2` |
 | 通常ファイル以外・バイナリで行数集計不能 | `2` |
 | Git未導入・差分集計失敗 | `1` |
-| ヘルプ表示 | `0` |
+| ヘルプ・バージョン表示 | `0` |
 
 差分の存在はエラーとみなさない。
 
@@ -74,7 +75,12 @@ additions: 12, deletions: 5
 
 - Bashで実装する。
 - macOS・Linux、Bash 3.2以上、Git 2系を対象とする。
-- スクリプトはルートの `adddel`、Batsテストは `tests/test_adddel.bats` に配置する。
+- 原本は `src/adddel` と `src/adddel.1.md` に配置する。
+- `make dist` でGitからバージョンとUTCのコミット日付を取得し、`dist/bin/adddel` と `dist/share/man/man1/adddel.1` を生成する。
+- manページはPandocで変換する。
+- タグ以降のコミットにはコミットIDを付け、追跡ファイルに変更がある場合はさらに `-dirty` を付ける。
+- `--version` は生成時に埋め込んだバージョンを表示する。
+- CLIと生成処理のBatsテストは `tests/` に配置する。
 - 差分の集計には `git diff --no-index --numstat` を使用する。
 - myersに固定し、indent heuristic・外部diff・textconv・リネーム検出を無効にする。
 - ファイル名を安全に扱うため、Gitの出力は `-z` 形式で取得する。

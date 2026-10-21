@@ -2,7 +2,7 @@
 
 setup() {
     original_path=$PATH
-    app="$BATS_TEST_DIRNAME/../adddel"
+    app="$BATS_TEST_DIRNAME/../src/adddel"
     shell=${ADDDEL_TEST_BASH:-/bin/bash}
     real_git=$(command -v git)
     real_cmp=$(command -v cmp)
@@ -117,6 +117,28 @@ fake_git() {
     success $'0\t0' old -h
 }
 
+@test "version displays source placeholder and takes priority over invalid arguments" {
+    success 'adddel @VERSION@' --version
+    success 'adddel @VERSION@' --unknown --version missing
+    success 'adddel @VERSION@' --version --unknown missing
+    success 'adddel @VERSION@' --version --version
+    failure 2 'unknown option' -V
+}
+
+@test "help takes priority over version and version stops at files and double dash" {
+    run invoke --version --help
+    [ "$status" -eq 0 ]
+    [[ $(<actual.out) == Usage:* ]]
+    [ ! -s actual.err ]
+    run invoke --help --version
+    [ "$status" -eq 0 ]
+    [[ $(<actual.out) == Usage:* ]]
+    cp old ./--version
+    success $'1\t0' -- --version new
+    success $'0\t0' old --version
+    failure 2 'expected exactly two file arguments' old new --version
+}
+
 @test "follows symlinks including targets ending with newline" {
     ln -s old old-link
     ln -s new new-link
@@ -170,6 +192,7 @@ fake_git() {
     run invoke --unknown --help
     [ "$status" -eq 0 ]
     [ ! -s actual.err ]
+    success 'adddel @VERSION@' --unknown --version missing
 }
 
 @test "rejects failed git even when it emits valid-looking counts" {

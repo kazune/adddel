@@ -1,4 +1,7 @@
 #!/bin/bash
+# adddel @VERSION@ (@DATE@)
+
+version='@VERSION@'
 
 fail() {
     printf 'adddel: %s\n' "$2" >&2
@@ -9,6 +12,7 @@ help() {
     cat <<'EOF'
 Usage: adddel [-l | --label] [--] OLD NEW
        adddel -h | --help
+       adddel --version
 
 Count added and deleted lines between two files.
 OLD is the original file; NEW is the modified file.
@@ -16,27 +20,34 @@ OLD is the original file; NEW is the modified file.
 Options (before file arguments only):
   -l, --label  Print labeled counts; may be repeated.
   -h, --help   Show help and exit successfully.
+  --version    Show version and exit successfully.
   --           End option parsing.
 
 Output: additions<TAB>deletions, followed by a newline.
 With --label: additions: N, deletions: N
 
 Exit codes:
-  0  Success, including differences or help.
+  0  Success, including differences, help, or version.
   1  Git unavailable or processing failed.
   2  Invalid arguments or input files, including uncountable binary input.
 EOF
 }
 
-# Scan the entire option prefix before reporting an unknown option.
+show_version=0
+# Help wins over version, and both win over invalid arguments in this prefix.
 for argument in "$@"; do
     case "$argument" in
         --) break ;;
         -h|--help) help; exit 0 ;;
+        --version) show_version=1 ;;
         -*) ;;
         *) break ;;
     esac
 done
+if [ "$show_version" -eq 1 ]; then
+    printf 'adddel %s\n' "$version"
+    exit 0
+fi
 
 labeled=0
 while [ "$#" -gt 0 ]; do
