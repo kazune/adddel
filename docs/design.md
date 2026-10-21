@@ -34,7 +34,7 @@
 - 1列目：additions
 - 2列目：deletions
 
-labelモード（`-l`, `--lebel`）
+labelモード（`-l`, `--label`）
 
 ```
 additions: 12, deletions: 5
