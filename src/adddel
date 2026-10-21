@@ -23,7 +23,7 @@ Options (before file arguments only):
   --version    Show version and exit successfully.
   --           End option parsing.
 
-Output: additions<TAB>deletions, followed by a newline.
+Output: additions<SPACE>deletions, followed by a newline.
 With --label: additions: N, deletions: N
 
 Exit codes:
@@ -127,5 +127,5 @@ fi
 if [ "$labeled" -eq 1 ]; then
     printf 'additions: %s, deletions: %s\n' "$additions" "$deletions"
 else
-    printf '%s\t%s\n' "$additions" "$deletions"
+    printf '%s %s\n' "$additions" "$deletions"
 fi

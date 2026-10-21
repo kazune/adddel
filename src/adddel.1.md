@@ -40,7 +40,7 @@ Options must precede the first file argument.
 Combined short options such as `-lh` or `-ll` are not accepted.
 
 `-l`, `--label`
-: Print labeled counts instead of tab-separated counts.
+: Print labeled counts instead of space-separated counts.
   This option may be repeated.
 
 `-h`, `--help`
@@ -62,11 +62,11 @@ Help and version options after the first file argument or after `--` are treated
 
 # OUTPUT
 
-By default, one line contains additions, a literal tab, deletions, and a final newline.
-For example, with `<TAB>` representing the tab character:
+By default, one line contains additions, a single ASCII space (0x20), deletions, and a final newline.
+For example:
 
 ```text
-12<TAB>5
+12 5
 ```
 
 With `--label`, the same counts are printed as:

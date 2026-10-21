@@ -50,31 +50,31 @@ fake_git() {
 }
 
 @test "counts additions, deletions, replacements and identical files" {
-    success $'1\t0' old new
-    success $'0\t1' new old
+    success '1 0' old new
+    success '0 1' new old
     printf 'one\nchanged\n' >new
-    success $'1\t1' old new
+    success '1 1' old new
     cp old new
-    success $'0\t0' old new
-    success $'0\t0' old old
+    success '0 0' old new
+    success '0 0' old old
 }
 
 @test "counts whitespace, blank lines and empty files" {
     printf 'one \ntwo\n\n' >new
-    success $'2\t1' old new
+    success '2 1' old new
     : >old
-    success $'3\t0' old new
-    success $'0\t3' new old
+    success '3 0' old new
+    success '0 3' new old
     : >new
-    success $'0\t0' old new
+    success '0 0' old new
 }
 
 @test "preserves missing final newline and CRLF differences" {
     printf 'one' >old
     printf 'one\n' >new
-    success $'1\t1' old new
+    success '1 1' old new
     printf 'one\r\n' >new
-    success $'1\t1' old new
+    success '1 1' old new
 }
 
 @test "supports labels and repeated options" {
@@ -101,7 +101,7 @@ fake_git() {
         [[ $(<actual.out) == Usage:* ]]
     done
     cp old ./--help
-    success $'1\t0' -- --help new
+    success '1 0' -- --help new
     failure 2 'expected exactly two file arguments' old new --help
 }
 
@@ -109,12 +109,12 @@ fake_git() {
     local name
     for name in 'with spaces' $'with\ttab' $'with\nnewline\n' '日本語' '-old'; do
         cp old "./$name"
-        success $'1\t0' -- "$name" new
+        success '1 0' -- "$name" new
     done
     cp old ./--label
-    success $'0\t0' old --label
+    success '0 0' old --label
     cp old ./-h
-    success $'0\t0' old -h
+    success '0 0' old -h
 }
 
 @test "version displays source placeholder and takes priority over invalid arguments" {
@@ -134,21 +134,21 @@ fake_git() {
     [ "$status" -eq 0 ]
     [[ $(<actual.out) == Usage:* ]]
     cp old ./--version
-    success $'1\t0' -- --version new
-    success $'0\t0' old --version
+    success '1 0' -- --version new
+    success '0 0' old --version
     failure 2 'expected exactly two file arguments' old new --version
 }
 
 @test "follows symlinks including targets ending with newline" {
     ln -s old old-link
     ln -s new new-link
-    success $'1\t0' old-link new-link
-    success $'0\t0' old old-link
+    success '1 0' old-link new-link
+    success '0 0' old old-link
     mkdir nested
     cp old $'nested/target\n'
     ln -s $'nested/target\n' middle
     ln -s middle chain
-    success $'1\t0' chain new
+    success '1 0' chain new
 }
 
 @test "rejects missing files, broken links and nonregular inputs" {
@@ -171,15 +171,15 @@ fake_git() {
 @test "allows identical binary content and rejects uncountable differences" {
     printf 'a\0b\n' >old
     cp old new
-    success $'0\t0' old new
+    success '0 0' old new
     printf 'a\0c\n' >new
     failure 2 'cannot count lines for binary input' old new
 }
 
 @test "works inside and outside repositories and honors binary attributes" {
-    success $'1\t0' old new
+    success '1 0' old new
     "$real_git" init -q .
-    success $'1\t0' old new
+    success '1 0' old new
     printf 'old -diff\nnew -diff\n' >.gitattributes
     failure 2 'cannot count lines for binary input' old new
 }
@@ -210,11 +210,11 @@ fake_git() {
 
 @test "parses complete NUL records and empty successful output" {
     fake_git "printf '12\\t5\\tfile\\0'; exit 1"
-    success $'12\t5' old new
+    success '12 5' old new
     fake_git "printf '12\\t5\\t\\0old\\0new\\0'; exit 1"
-    success $'12\t5' old new
+    success '12 5' old new
     fake_git 'exit 0'
-    success $'0\t0' old new
+    success '0 0' old new
 }
 
 @test "overrides configured algorithm heuristics and disables external diff and textconv" {
@@ -232,7 +232,7 @@ fake_git() {
     # Expansion happens in the generated script, not in the test process.
     # shellcheck disable=SC2016
     fake_git 'printf "%s\n" "$@" >"$GIT_ARGS"; exec "$REAL_GIT" "$@"'
-    success $'1\t0' old new
+    success '1 0' old new
     [ ! -e called ]
     for option in --diff-algorithm=myers --no-indent-heuristic --no-ext-diff --no-textconv --no-renames; do
         grep -Fx -- "$option" arguments

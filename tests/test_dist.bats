@@ -52,7 +52,7 @@ assert_build() {
     printf 'one\ntwo\n' >new
     run dist/bin/adddel old new
     [ "$status" -eq 0 ]
-    [ "$output" = $'1\t0' ]
+    [ "$output" = '1 0' ]
 }
 
 @test "uses HEAD commit ID after an annotated tag and refreshes after a new tag" {

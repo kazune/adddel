@@ -3,7 +3,8 @@
 ## 位置づけ
 
 この文書は `docs/design.md` に基づき、adddel の外部仕様と実装時に守る条件を定める。
-インタビューで確定した仕様を以下に記載する。
+現在のドキュメントには現在の仕様・使い方・設計のみを記載し、変更履歴・旧仕様・検討経緯などの過去の情報は記載しない。
+過去の情報は [CHANGELOG.md](../CHANGELOG.md) を参照する。
 
 ## 入力と引数
 
@@ -75,11 +76,10 @@
 
 ### 通常モード
 
-追加行数、タブ文字、削除行数の順に、2列を1行で出力する。
-次の例の `\t` は実際のタブ文字を表す。
+追加行数、半角スペース1文字（`0x20`）、削除行数の順に、2列を1行で出力する。
 
 ```text
-12\t5
+12 5
 ```
 
 ### ラベル付きモード
@@ -106,9 +106,9 @@ additions: 12, deletions: 5
 差分の存在そのものはエラーとみなさない。
 エラー時は標準出力を空にし、標準エラー出力に `adddel: 理由` の形式で英語のメッセージを出す。
 
-### エラーメッセージの文面案
+### エラーメッセージ
 
-| 原因 | メッセージ案 |
+| 原因 | メッセージ |
 | --- | --- |
 | ファイル引数の数が不正 | `adddel: expected exactly two file arguments` |
 | 不明なオプション・短いオプションの結合 | `adddel: unknown option` |
@@ -120,7 +120,7 @@ additions: 12, deletions: 5
 | Gitの異常終了 | `adddel: git diff failed` |
 | 集計出力の形式不正 | `adddel: invalid git diff output` |
 
-### ヘルプ本文案
+### ヘルプ本文
 
 ```text
 Usage: adddel [-l | --label] [--] <OLD> <NEW>
@@ -136,7 +136,7 @@ Options (before file arguments only):
   --version    Show version and exit successfully.
   --           End option parsing.
 
-Output: additions<TAB>deletions, followed by a newline.
+Output: additions<SPACE>deletions, followed by a newline.
 With --label: additions: N, deletions: N
 
 Exit codes:
@@ -193,7 +193,7 @@ Gitリポジトリの存在は要求しない。
 - 行の変更が削除と追加として集計されること。
 - 差分のない入力で両方の集計値が `0` となること。
 - 空白や空行の変更が集計されること。
-- 通常モードの列順、タブ区切り、1行の出力が契約と一致すること。
+- 通常モードの列順、半角スペース1文字（`0x20`）の区切り、1行の出力が契約と一致すること。
 - `-l` と `--label` の出力がラベル付きの形式と一致すること。
 - Gitリポジトリ外のファイルを比較できること。
 
