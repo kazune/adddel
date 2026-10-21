@@ -81,6 +81,9 @@ additions: 12, deletions: 5
 - タグ以降のコミットにはコミットIDを付け、追跡ファイルに変更がある場合はさらに `-dirty` を付ける。
 - `--version` は生成時に埋め込んだバージョンを表示する。
 - CLIと生成処理のBatsテストは `tests/` に配置する。
+- `make install` は生成済みの `dist/` を配置し、GitやPandocによる再生成は行わない。
+- 標準配置先は `/usr/local` とし、`PREFIX` による変更と `DESTDIR` による仮配置に対応する。
+- プログラムは権限 `755`、manページは `644` で配置する。
 - 差分の集計には `git diff --no-index --numstat` を使用する。
 - myersに固定し、indent heuristic・外部diff・textconv・リネーム検出を無効にする。
 - ファイル名を安全に扱うため、Gitの出力は `-z` 形式で取得する。
